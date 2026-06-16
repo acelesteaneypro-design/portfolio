@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — Portfolio ANEY</title>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#05080f;--bg2:#0a0e1a;
+  --card:#111827;--border:#1e2d4a;--border2:#243558;
+  --cyan:#00d4ff;--green:#00ff88;--amber:#f0a500;--red:#ff4757;
+  --text:#e2e8f0;--text2:#8899aa;--text3:#4a5a72;
+  --mono:'Courier New',Courier,monospace;
+  --sans:-apple-system,BlinkMacSystemFont,'Segoe UI',Arial,sans-serif;
+}
+body{background:var(--bg);color:var(--text);font-family:var(--sans);min-height:100vh}
+::-webkit-scrollbar{width:4px}::-webkit-scrollbar-thumb{background:var(--cyan);border-radius:2px}
+
+#pw-overlay{position:fixed;inset:0;background:rgba(5,8,15,.97);z-index:999;display:flex;align-items:center;justify-content:center}
+.pw-box{background:var(--card);border:1px solid var(--border);padding:2.5rem;width:380px;text-align:center}
+.pw-title{font-family:var(--mono);font-size:.9rem;color:var(--cyan);margin-bottom:.5rem}
+.pw-sub{font-family:var(--mono);font-size:.68rem;color:var(--text3);margin-bottom:1.5rem}
+.pw-box input{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.82rem;padding:.6rem;text-align:center;outline:none}
+.pw-box input:focus{border-color:var(--cyan)}
+#auth-email{letter-spacing:0}
+#auth-pass{letter-spacing:.2em}
+.pw-btn{width:100%;background:none;border:1px solid var(--cyan);color:var(--cyan);font-family:var(--mono);font-size:.78rem;padding:.75rem;cursor:pointer;letter-spacing:.1em;text-transform:uppercase;transition:all .2s}
+.pw-btn:hover{background:rgba(0,212,255,.08)}
+.pw-err{font-family:var(--mono);font-size:.68rem;color:var(--red);margin-top:.6rem;display:none}
+.pw-hint{font-family:var(--mono);font-size:.58rem;color:var(--text3);margin-top:.75rem}
+.pw-hint em{color:var(--amber);font-style:normal}
+
+header{background:var(--bg2);border-bottom:1px solid var(--border);padding:1.25rem 2rem;display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:var(--mono);font-size:.9rem;color:var(--cyan)}
+.logo em{color:var(--green);font-style:normal}
+.header-right{display:flex;gap:.75rem;align-items:center}
+.back-link{font-family:var(--mono);font-size:.7rem;color:var(--text3);text-decoration:none;border:1px solid var(--border);padding:.3rem .8rem;transition:all .2s}
+.back-link:hover{border-color:var(--cyan);color:var(--cyan)}
+.btn-clear{font-family:var(--mono);font-size:.65rem;background:none;border:1px solid rgba(255,71,87,.3);color:var(--red);padding:.3rem .8rem;cursor:pointer;transition:all .2s}
+.btn-clear:hover{background:rgba(255,71,87,.1)}
+
+.tabs{display:flex;border-bottom:1px solid var(--border);background:var(--bg2);padding:0 2rem}
+.tab-btn{font-family:var(--mono);font-size:.72rem;padding:.85rem 1.5rem;background:none;border:none;color:var(--text3);cursor:pointer;letter-spacing:.08em;text-transform:uppercase;border-bottom:2px solid transparent;transition:all .2s}
+.tab-btn.active{color:var(--cyan);border-bottom-color:var(--cyan)}
+
+.container{max-width:1100px;margin:0 auto;padding:2rem}
+.tab-content{display:none}.tab-content.active{display:block}
+
+.fb-status{display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem;padding:.75rem 1.1rem;background:var(--card);border:1px solid var(--border);border-left:3px solid var(--text3);font-family:var(--mono);font-size:.68rem}
+.fb-status.connected{border-left-color:var(--green)}
+.fb-status.error{border-left-color:var(--red)}
+.fb-dot{width:7px;height:7px;border-radius:50%;background:var(--text3);flex-shrink:0}
+.fb-status.connected .fb-dot{background:var(--green);box-shadow:0 0 6px rgba(0,255,136,.4)}
+.fb-status.error .fb-dot{background:var(--red)}
+
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem;margin-bottom:2rem}
+.stat-card{background:var(--card);border:1px solid var(--border);border-left:3px solid var(--cyan);padding:1.1rem;text-align:center}
+.stat-num{font-family:var(--mono);font-size:1.6rem;font-weight:700;color:var(--cyan)}
+.stat-label{font-family:var(--mono);font-size:.58rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;margin-top:.25rem}
+
+.panel-grid{display:grid;grid-template-columns:1fr 1.3fr;gap:2rem;align-items:start}
+.panel{background:var(--card);border:1px solid var(--border);padding:1.75rem}
+.panel-title{font-family:var(--mono);font-size:.75rem;color:var(--cyan);letter-spacing:.15em;text-transform:uppercase;margin-bottom:1.5rem;padding-bottom:.75rem;border-bottom:1px solid var(--border)}
+
+.form-group{margin-bottom:1rem}
+label{font-family:var(--mono);font-size:.65rem;color:var(--text3);letter-spacing:.1em;text-transform:uppercase;display:block;margin-bottom:.35rem}
+input,textarea,select{width:100%;background:var(--bg2);border:1px solid var(--border);color:var(--text);font-family:var(--mono);font-size:.78rem;padding:.55rem .8rem;outline:none;transition:border-color .2s;resize:vertical}
+input:focus,textarea:focus,select:focus{border-color:var(--cyan)}
+select option{background:var(--bg2)}
+textarea{min-height:75px}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+
+.upload-zone{border:1px dashed var(--border2);padding:1rem;text-align:center;cursor:pointer;transition:all .2s;position:relative;margin-top:.35rem}
+.upload-zone:hover{border-color:var(--cyan);background:rgba(0,212,255,.02)}
+.upload-zone input[type="file"]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-label{font-family:var(--mono);font-size:.68rem;color:var(--text3)}
+.upload-label em{color:var(--cyan);font-style:normal}
+.upload-name{font-family:var(--mono);font-size:.65rem;color:var(--green);margin-top:.35rem;display:none}
+.upload-warn{font-family:var(--mono);font-size:.6rem;color:var(--amber);margin-top:.3rem}
+
+.btn-submit{width:100%;background:transparent;border:1px solid var(--cyan);color:var(--cyan);font-family:var(--mono);font-size:.75rem;padding:.8rem;cursor:pointer;letter-spacing:.12em;text-transform:uppercase;transition:all .2s;margin-top:1.25rem}
+.btn-submit:hover{background:rgba(0,212,255,.08)}
+.btn-submit:disabled{opacity:.4;cursor:not-allowed}
+.btn-danger{background:transparent;border:1px solid rgba(255,71,87,.3);color:var(--red);font-family:var(--mono);font-size:.62rem;padding:.28rem .6rem;cursor:pointer;transition:all .2s}
+.btn-danger:hover{background:rgba(255,71,87,.1)}
+
+.msg{font-family:var(--mono);font-size:.72rem;padding:.55rem .9rem;margin-top:.75rem;display:none}
+.msg.ok{background:rgba(0,255,136,.08);border:1px solid rgba(0,255,136,.2);color:var(--green)}
+.msg.err{background:rgba(255,71,87,.08);border:1px solid rgba(255,71,87,.2);color:var(--red)}
+
+.list-toolbar{display:flex;gap:.75rem;margin-bottom:1rem;align-items:center}
+.list-toolbar input{flex:1}
+.items-list{display:flex;flex-direction:column;gap:.65rem;max-height:580px;overflow-y:auto;padding-right:.2rem}
+.list-item{background:var(--bg2);border:1px solid var(--border);padding:.9rem 1.1rem;display:flex;justify-content:space-between;align-items:flex-start;gap:1rem}
+.item-title{font-family:var(--mono);font-size:.78rem;font-weight:700;color:#fff;margin-bottom:.3rem}
+.item-meta{display:flex;gap:.5rem;flex-wrap:wrap}
+.item-tag{font-family:var(--mono);font-size:.58rem;padding:.12rem .45rem;border:1px solid var(--border);color:var(--text3)}
+.item-tag.reseau{border-color:#1ba8d4;color:#1ba8d4}
+.item-tag.admin-linux{border-color:#f7931a;color:#f7931a}
+.item-tag.admin-windows{border-color:#0078d4;color:#0078d4}
+.item-tag.cybersecurite{border-color:var(--red);color:var(--red)}
+.item-tag.easy{border-color:var(--green);color:var(--green)}
+.item-tag.medium{border-color:var(--amber);color:var(--amber)}
+.item-tag.hard{border-color:var(--red);color:var(--red)}
+.item-tag.done{border-color:var(--green);color:var(--green)}
+.item-tag.ip{border-color:var(--amber);color:var(--amber)}
+.item-tag.planned{border-color:var(--text3);color:var(--text3)}
+.item-tag.has{border-color:var(--cyan);color:var(--cyan)}
+.list-empty{text-align:center;padding:2.5rem;font-family:var(--mono);font-size:.75rem;color:var(--text3)}
+
+@media(max-width:768px){
+  .panel-grid{grid-template-columns:1fr}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+  .form-row{grid-template-columns:1fr}
+  .tabs{padding:0 1rem;overflow-x:auto}
+}
+</style>
+</head>
+<body>
+
+<div id="pw-overlay">
+  <div class="pw-box">
+    <div class="pw-title">&gt; admin_access</div>
+    <div class="pw-sub">Connexion requise</div>
+    <input type="email"    id="auth-email" placeholder="votre@email.com" style="margin-bottom:.6rem">
+    <input type="password" id="auth-pass"  placeholder="••••••••" onkeydown="if(event.key==='Enter')doLogin()">
+    <button class="pw-btn" id="login-btn" onclick="doLogin()" style="margin-top:.75rem">Connexion</button>
+    <div class="pw-err" id="pw-err" style="display:none">Email ou mot de passe incorrect</div>
+    <div id="login-loading" style="font-family:var(--mono);font-size:.65rem;color:var(--text3);margin-top:.6rem;display:none">Connexion en cours...</div>
+  </div>
+</div>
+
+<header>
+  <div class="logo">&gt; <em>admin</em>_panel — Portfolio ANEY</div>
+  <div class="header-right">
+    <button class="btn-clear" onclick="clearSection()">&#128465; Vider section</button>
+    <button onclick="doLogout()" style="font-family:var(--mono);font-size:.65rem;background:none;border:1px solid var(--border);color:var(--text3);padding:.3rem .8rem;cursor:pointer;transition:all .2s" onmouseover="this.style.borderColor='var(--red)';this.style.color='var(--red)'" onmouseout="this.style.borderColor='var(--border)';this.style.color='var(--text3)'">&#10005; Deconnexion</button>
+    <a href="index.html" class="back-link">← Portfolio</a>
+  </div>
+</header>
+
+<div class="tabs">
+  <button class="tab-btn active" onclick="switchTab('labs',this)">&#9889; Labs</button>
+  <button class="tab-btn"        onclick="switchTab('skills',this)">&#128295; Competences</button>
+  <button class="tab-btn"        onclick="switchTab('certs',this)">&#127942; Certifications</button>
+</div>
+
+<div class="container">
+
+  <div class="fb-status" id="fb-status">
+    <div class="fb-dot"></div>
+    <span id="fb-status-text">Connexion Firebase en cours...</span>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card"><div class="stat-num" id="s-labs">0</div><div class="stat-label">Labs</div></div>
+    <div class="stat-card"><div class="stat-num" id="s-skills" style="color:var(--green)">0</div><div class="stat-label">Competences</div></div>
+    <div class="stat-card"><div class="stat-num" id="s-certs" style="color:var(--amber)">0</div><div class="stat-label">Certifications</div></div>
+    <div class="stat-card"><div class="stat-num" id="s-certs-done" style="color:var(--green)">0</div><div class="stat-label">Obtenues</div></div>
+  </div>
+
+  <!-- LABS -->
+  <div id="tab-labs" class="tab-content active">
+    <div class="panel-grid">
+      <div class="panel">
+        <div class="panel-title">+ Ajouter un Lab</div>
+        <div class="form-group"><label>Titre *</label><input type="text" id="l-title" placeholder="ex: Configuration VLAN"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Categorie *</label>
+            <select id="l-cat">
+              <option value="reseau">Reseau</option>
+              <option value="admin-linux">Admin Sys — Linux</option>
+              <option value="admin-windows">Admin Sys — Windows</option>
+              <option value="cybersecurite">Cybersecurite</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Difficulte *</label>
+            <select id="l-diff">
+              <option value="easy">Easy</option>
+              <option value="medium">Medium</option>
+              <option value="hard">Hard</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-group"><label>Description *</label><textarea id="l-desc" placeholder="Ce lab couvre..."></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label>Date</label><input type="date" id="l-date"></div>
+          <div class="form-group"><label>Duree</label><input type="text" id="l-duration" placeholder="ex: 2h30"></div>
+        </div>
+        <div class="form-group"><label>Outils / Protocoles</label><input type="text" id="l-tools" placeholder="ex: Packet Tracer, OSPF"></div>
+        <div class="form-group">
+          <label>Fichier .pkt / .pktx</label>
+          <div class="upload-zone">
+            <input type="file" id="l-pkt" accept=".pkt,.pktx,.zip" onchange="showFile(this,'pkt-name')">
+            <div class="upload-label">Deposer ou <em>parcourir</em></div>
+            <div class="upload-name" id="pkt-name"></div>
+          </div>
+          <div class="upload-warn">&#9888; Max 5MB recommande</div>
+        </div>
+        <div class="form-group">
+          <label>Sujet du Lab (PDF)</label>
+          <div class="upload-zone">
+            <input type="file" id="l-subject" accept=".pdf" onchange="showFile(this,'lsubject-name')">
+            <div class="upload-label">Deposer ou <em>parcourir</em></div>
+            <div class="upload-name" id="lsubject-name"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Rapport du Lab (PDF)</label>
+          <div class="upload-zone">
+            <input type="file" id="l-pdf" accept=".pdf" onchange="showFile(this,'lpdf-name')">
+            <div class="upload-label">Deposer ou <em>parcourir</em></div>
+            <div class="upload-name" id="lpdf-name"></div>
+          </div>
+        </div>
+        <button class="btn-submit" id="l-submit" onclick="addLab()">&#10003; Enregistrer le Lab</button>
+        <div class="msg ok"  id="l-ok">&#10003; Lab sauvegarde dans Firebase !</div>
+        <div class="msg err" id="l-err" style="display:none"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Labs enregistres</div>
+        <div class="list-toolbar"><input type="text" id="l-search" placeholder="Rechercher..." oninput="renderLabList()"></div>
+        <div class="items-list" id="lab-list"><div class="list-empty">Chargement...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SKILLS -->
+  <div id="tab-skills" class="tab-content">
+    <div class="panel-grid">
+      <div class="panel">
+        <div class="panel-title">+ Ajouter une Competence</div>
+        <div class="form-row">
+          <div class="form-group"><label>Icone (emoji)</label><input type="text" id="sk-icon" placeholder="ex: 🌐" maxlength="4"></div>
+          <div class="form-group"><label>Nom *</label><input type="text" id="sk-name" placeholder="ex: Cisco Networking"></div>
+        </div>
+        <div class="form-group"><label>Description *</label><textarea id="sk-desc" placeholder="Ce que tu sais faire..."></textarea></div>
+        <div class="form-group"><label>Tags (separes par virgule)</label><input type="text" id="sk-tags" placeholder="ex: Packet Tracer, VLAN, OSPF"></div>
+        <div class="form-group">
+          <label>Niveau : <span id="sk-level-val">50</span>%</label>
+          <input type="range" id="sk-level" min="5" max="100" value="50" oninput="document.getElementById('sk-level-val').textContent=this.value" style="padding:0;border:none;background:none;accent-color:var(--cyan)">
+        </div>
+        <button class="btn-submit" id="sk-submit" onclick="addSkill()">&#10003; Enregistrer la Competence</button>
+        <div class="msg ok"  id="sk-ok">&#10003; Competence sauvegardee !</div>
+        <div class="msg err" id="sk-err" style="display:none"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Competences enregistrees</div>
+        <div class="list-toolbar"><input type="text" id="sk-search" placeholder="Rechercher..." oninput="renderSkillList()"></div>
+        <div class="items-list" id="skill-list"><div class="list-empty">Chargement...</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CERTS -->
+  <div id="tab-certs" class="tab-content">
+    <div class="panel-grid">
+      <div class="panel">
+        <div class="panel-title">+ Ajouter une Certification</div>
+        <div class="form-group"><label>Organisme *</label><input type="text" id="c-org" placeholder="ex: Cisco, CompTIA"></div>
+        <div class="form-group"><label>Nom de la certification *</label><input type="text" id="c-name" placeholder="ex: CCNA: Introduction to Networks"></div>
+        <div class="form-row">
+          <div class="form-group"><label>Statut *</label>
+            <select id="c-status">
+              <option value="done">Obtenu</option>
+              <option value="ip">En cours</option>
+              <option value="planned">Planifie</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Date</label><input type="text" id="c-date" placeholder="ex: Jan 2025"></div>
+        </div>
+        <div class="form-group">
+          <label>Certificat (PDF)</label>
+          <div class="upload-zone"><input type="file" id="c-pdf" accept=".pdf" onchange="showFile(this,'cpdf-name')"><div class="upload-label">Deposer ou <em>parcourir</em></div><div class="upload-name" id="cpdf-name"></div></div>
+        </div>
+        <div class="form-group">
+          <label>Badge numerique (image)</label>
+          <div class="upload-zone"><input type="file" id="c-badge" accept=".png,.jpg,.jpeg,.svg,.webp" onchange="showFile(this,'cbadge-name')"><div class="upload-label">Deposer ou <em>parcourir</em></div><div class="upload-name" id="cbadge-name"></div></div>
+        </div>
+        <div class="form-group">
+          <label>Preuve supplementaire</label>
+          <div class="upload-zone"><input type="file" id="c-proof" accept=".pdf,.png,.jpg,.jpeg" onchange="showFile(this,'cproof-name')"><div class="upload-label">Deposer ou <em>parcourir</em></div><div class="upload-name" id="cproof-name"></div></div>
+        </div>
+        <div class="form-group"><label>Lien de verification (URL)</label><input type="url" id="c-verify" placeholder="https://www.credly.com/..."></div>
+        <button class="btn-submit" id="c-submit" onclick="addCert()">&#10003; Enregistrer la Certification</button>
+        <div class="msg ok"  id="c-ok">&#10003; Certification sauvegardee !</div>
+        <div class="msg err" id="c-err" style="display:none"></div>
+      </div>
+      <div class="panel">
+        <div class="panel-title">Certifications enregistrees</div>
+        <div class="list-toolbar"><input type="text" id="c-search" placeholder="Rechercher..." oninput="renderCertList()"></div>
+        <div class="items-list" id="cert-list"><div class="list-empty">Chargement...</div></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<script type="module">
+import { initializeApp }                                        from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+import { getDatabase, ref, push, remove, onValue }             from "https://www.gstatic.com/firebasejs/10.12.0/firebase-database.js";
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCB7-nw54SsLYV9lSbgAkcbAFlOdTSG2AI",
+  authDomain: "aney-portfolio.firebaseapp.com",
+  databaseURL: "https://aney-portfolio-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "aney-portfolio",
+  storageBucket: "aney-portfolio.firebasestorage.app",
+  messagingSenderId: "484047263878",
+  appId: "1:484047263878:web:ff5f10062f9b53505a5907"
+};
+const app = initializeApp(firebaseConfig);
+const db   = getDatabase(app);
+const auth = getAuth(app);
+
+var cache = { labs:{}, skills:{}, certs:{} };
+var currentTab = 'labs';
+
+// ---- FIREBASE AUTH ----
+onAuthStateChanged(auth, function(user){
+  if(user){
+    document.getElementById('pw-overlay').style.display='none';
+    initListeners();
+  } else {
+    document.getElementById('pw-overlay').style.display='flex';
+  }
+});
+
+function doLogin(){
+  var email = document.getElementById('auth-email').value.trim();
+  var pass  = document.getElementById('auth-pass').value;
+  var err   = document.getElementById('pw-err');
+  var load  = document.getElementById('login-loading');
+  var btn   = document.getElementById('login-btn');
+  if(!email||!pass){ err.textContent='Email et mot de passe requis.'; err.style.display='block'; return; }
+  err.style.display='none';
+  load.style.display='block';
+  btn.disabled=true;
+  signInWithEmailAndPassword(auth, email, pass)
+    .catch(function(e){
+      load.style.display='none';
+      btn.disabled=false;
+      err.textContent='Email ou mot de passe incorrect.';
+      err.style.display='block';
+    });
+}
+window.doLogin = doLogin;
+
+function doLogout(){
+  signOut(auth);
+}
+window.doLogout = doLogout;
+
+// ---- TABS ----
+function switchTab(name,btn){
+  document.querySelectorAll('.tab-content').forEach(function(t){ t.classList.remove('active'); });
+  document.querySelectorAll('.tab-btn').forEach(function(b){ b.classList.remove('active'); });
+  document.getElementById('tab-'+name).classList.add('active');
+  btn.classList.add('active');
+  currentTab = name;
+}
+window.switchTab = switchTab;
+
+// ---- FIREBASE STATUS ----
+function setStatus(ok, msg){
+  var el=document.getElementById('fb-status');
+  var txt=document.getElementById('fb-status-text');
+  el.className='fb-status '+(ok?'connected':'error');
+  txt.textContent=msg;
+}
+
+// ---- FILE HELPERS ----
+function showFile(input, nameId){
+  var f=input.files[0]; if(!f) return;
+  var el=document.getElementById(nameId); el.textContent='✓ '+f.name; el.style.display='block';
+}
+window.showFile = showFile;
+function readFile(input){ return new Promise(function(res){ var f=input.files[0]; if(!f){res(null);return;} var r=new FileReader(); r.onload=function(e){res(e.target.result);}; r.readAsDataURL(f); }); }
+
+// ---- SHOW MSG ----
+function showMsg(id,isErr,msg){
+  var el=document.getElementById(id);
+  if(isErr){ el.textContent=msg||'Erreur.'; el.className='msg err'; }
+  else { el.className='msg ok'; }
+  el.style.display='block';
+  setTimeout(function(){ el.style.display='none'; },3500);
+}
+function setBtn(id,loading){
+  var b=document.getElementById(id);
+  b.disabled=loading; b.textContent=loading?'Enregistrement...':b.textContent.replace('Enregistrement...','✓ Enregistrer');
+}
+
+// ---- ADD LAB ----
+async function addLab(){
+  var title=document.getElementById('l-title').value.trim();
+  var desc=document.getElementById('l-desc').value.trim();
+  if(!title||!desc){ showMsg('l-err',true,'Titre et description requis.'); return; }
+  setBtn('l-submit',true);
+  try{
+    var pktFile=await readFile(document.getElementById('l-pkt'));
+    var subjectFile=await readFile(document.getElementById('l-subject'));
+    var pdfFile=await readFile(document.getElementById('l-pdf'));
+    await push(ref(db,'labs'),{
+      title,description:desc,
+      category:document.getElementById('l-cat').value,
+      difficulty:document.getElementById('l-diff').value,
+      date:document.getElementById('l-date').value||new Date().toISOString().slice(0,10),
+      duration:document.getElementById('l-duration').value||'N/A',
+      tools:document.getElementById('l-tools').value,
+      pktFile:pktFile||null, subjectFile:subjectFile||null, pdfFile:pdfFile||null,
+      createdAt:Date.now()
+    });
+    ['l-title','l-desc','l-duration','l-tools','l-date'].forEach(function(id){ document.getElementById(id).value=''; });
+    document.getElementById('l-pkt').value=''; document.getElementById('l-subject').value=''; document.getElementById('l-pdf').value='';
+    document.querySelectorAll('.upload-name').forEach(function(e){ e.style.display='none'; });
+    showMsg('l-ok',false);
+  }catch(e){ showMsg('l-err',true,'Erreur Firebase: '+e.message); }
+  setBtn('l-submit',false);
+}
+window.addLab = addLab;
+
+// ---- ADD SKILL ----
+async function addSkill(){
+  var name=document.getElementById('sk-name').value.trim();
+  var desc=document.getElementById('sk-desc').value.trim();
+  if(!name||!desc){ showMsg('sk-err',true,'Nom et description requis.'); return; }
+  setBtn('sk-submit',true);
+  try{
+    var tags=document.getElementById('sk-tags').value.split(',').map(function(t){ return t.trim(); }).filter(Boolean);
+    await push(ref(db,'skills'),{
+      icon:document.getElementById('sk-icon').value||'&#128295;',
+      name,description:desc,tags,
+      level:parseInt(document.getElementById('sk-level').value),
+      createdAt:Date.now()
+    });
+    ['sk-icon','sk-name','sk-desc','sk-tags'].forEach(function(id){ document.getElementById(id).value=''; });
+    document.getElementById('sk-level').value=50;
+    document.getElementById('sk-level-val').textContent='50';
+    showMsg('sk-ok',false);
+  }catch(e){ showMsg('sk-err',true,'Erreur Firebase: '+e.message); }
+  setBtn('sk-submit',false);
+}
+window.addSkill = addSkill;
+
+// ---- ADD CERT ----
+async function addCert(){
+  var org=document.getElementById('c-org').value.trim();
+  var name=document.getElementById('c-name').value.trim();
+  if(!org||!name){ showMsg('c-err',true,'Organisme et nom requis.'); return; }
+  setBtn('c-submit',true);
+  try{
+    var pdfFile  =await readFile(document.getElementById('c-pdf'));
+    var badgeFile=await readFile(document.getElementById('c-badge'));
+    var proofFile=await readFile(document.getElementById('c-proof'));
+    await push(ref(db,'certs'),{
+      org,name,
+      status:document.getElementById('c-status').value,
+      date:document.getElementById('c-date').value||'',
+      pdfFile:pdfFile||null, badgeFile:badgeFile||null, proofFile:proofFile||null,
+      verifyLink:document.getElementById('c-verify').value.trim()||null,
+      createdAt:Date.now()
+    });
+    ['c-org','c-name','c-date','c-verify'].forEach(function(id){ document.getElementById(id).value=''; });
+    document.getElementById('c-pdf').value=''; document.getElementById('c-badge').value=''; document.getElementById('c-proof').value='';
+    document.querySelectorAll('.upload-name').forEach(function(e){ e.style.display='none'; });
+    showMsg('c-ok',false);
+  }catch(e){ showMsg('c-err',true,'Erreur Firebase: '+e.message); }
+  setBtn('c-submit',false);
+}
+window.addCert = addCert;
+
+// ---- DELETE ----
+function del(section,key){ if(!confirm('Supprimer ?')) return; remove(ref(db,section+'/'+key)); }
+window.del = del;
+
+// ---- CLEAR SECTION ----
+function clearSection(){
+  var map={'labs':'Labs','skills':'Competences','certs':'Certifications'};
+  if(!confirm('Supprimer tous les '+map[currentTab]+' ?')) return;
+  remove(ref(db,currentTab));
+}
+window.clearSection = clearSection;
+
+// ---- RENDER LISTS ----
+function renderLabList(){
+  var q=(document.getElementById('l-search').value||'').toLowerCase();
+  var items=Object.entries(cache.labs).filter(function(e){ return !q||e[1].title.toLowerCase().includes(q); });
+  var el=document.getElementById('lab-list');
+  if(!items.length){ el.innerHTML='<div class="list-empty">Aucun lab.</div>'; return; }
+  el.innerHTML=items.map(function(e){
+    var k=e[0],l=e[1];
+    return '<div class="list-item"><div>'
+      +'<div class="item-title">'+l.title+'</div>'
+      +'<div class="item-meta">'
+      +'<span class="item-tag '+l.category+'">'+l.category+'</span>'
+      +'<span class="item-tag '+l.difficulty+'">'+l.difficulty+'</span>'
+      +(l.pktFile?'<span class="item-tag has">.pkt</span>':'')
+      +(l.subjectFile?'<span class="item-tag has">sujet</span>':'')
+      +(l.pdfFile?'<span class="item-tag has">rapport</span>':'')
+      +'</div></div>'
+      +'<button class="btn-danger" onclick="del(\'labs\',\''+k+'\')">✕</button>'
+      +'</div>';
+  }).join('');
+}
+function renderSkillList(){
+  var q=(document.getElementById('sk-search').value||'').toLowerCase();
+  var items=Object.entries(cache.skills).filter(function(e){ return !q||e[1].name.toLowerCase().includes(q); });
+  var el=document.getElementById('skill-list');
+  if(!items.length){ el.innerHTML='<div class="list-empty">Aucune competence.</div>'; return; }
+  el.innerHTML=items.map(function(e){
+    var k=e[0],s=e[1];
+    return '<div class="list-item"><div>'
+      +'<div class="item-title">'+s.icon+' '+s.name+'</div>'
+      +'<div class="item-meta"><span class="item-tag" style="color:var(--cyan);border-color:var(--cyan)">'+s.level+'%</span>'
+      +(s.tags||[]).slice(0,3).map(function(t){ return '<span class="item-tag">'+t+'</span>'; }).join('')
+      +'</div></div>'
+      +'<button class="btn-danger" onclick="del(\'skills\',\''+k+'\')">✕</button>'
+      +'</div>';
+  }).join('');
+}
+function renderCertList(){
+  var q=(document.getElementById('c-search').value||'').toLowerCase();
+  var items=Object.entries(cache.certs).filter(function(e){ return !q||(e[1].name+e[1].org).toLowerCase().includes(q); });
+  var el=document.getElementById('cert-list');
+  if(!items.length){ el.innerHTML='<div class="list-empty">Aucune certification.</div>'; return; }
+  el.innerHTML=items.map(function(e){
+    var k=e[0],c=e[1];
+    return '<div class="list-item"><div>'
+      +'<div class="item-title">'+c.org+' — '+c.name+'</div>'
+      +'<div class="item-meta">'
+      +'<span class="item-tag '+c.status+'">'+c.status+'</span>'
+      +(c.date?'<span class="item-tag">'+c.date+'</span>':'')
+      +(c.pdfFile?'<span class="item-tag has">pdf</span>':'')
+      +(c.badgeFile?'<span class="item-tag has">badge</span>':'')
+      +(c.proofFile?'<span class="item-tag has">preuve</span>':'')
+      +(c.verifyLink?'<span class="item-tag" style="color:var(--green);border-color:var(--green)">lien</span>':'')
+      +'</div></div>'
+      +'<button class="btn-danger" onclick="del(\'certs\',\''+k+'\')">✕</button>'
+      +'</div>';
+  }).join('');
+}
+
+// ---- UPDATE STATS ----
+function updateStats(){
+  var labs=Object.values(cache.labs);
+  var skills=Object.values(cache.skills);
+  var certs=Object.values(cache.certs);
+  document.getElementById('s-labs').textContent=labs.length;
+  document.getElementById('s-skills').textContent=skills.length;
+  document.getElementById('s-certs').textContent=certs.length;
+  document.getElementById('s-certs-done').textContent=certs.filter(function(c){return c.status==='done';}).length;
+}
+
+// ---- FIREBASE LISTENERS ----
+function initListeners(){
+  document.getElementById('l-date').value=new Date().toISOString().slice(0,10);
+  onValue(ref(db,'labs'),function(snap){
+    cache.labs=snap.val()||{};
+    renderLabList(); updateStats();
+    setStatus(true,'Firebase connecte — donnees en temps reel');
+  },function(err){ setStatus(false,'Erreur: '+err.message); });
+  onValue(ref(db,'skills'),function(snap){
+    cache.skills=snap.val()||{};
+    renderSkillList(); updateStats();
+  });
+  onValue(ref(db,'certs'),function(snap){
+    cache.certs=snap.val()||{};
+    renderCertList(); updateStats();
+  });
+}
+</script>
+</body>
+</html>
